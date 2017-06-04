@@ -44,13 +44,52 @@ import re
       <div class="slides">
 
         <section>
-          <h2>Working with IMAP Email Servers</h2>
+          <h2>Working with IMAP</br>Email Servers</h2>
           <h3>PyATL</h3>
           <h4>Doug Hellmann</h4>
         </section>
 
+<!--
+1. what is it?
+    1. I wanted to automatically sort the sent messages in my email account
+    2. needed a way to describe the rules for what to do with each message
+        1. who I sent it to
+        2. other header settings
+2. running the app
+    1. parsing command line arguments
+    2. loading a configuration file
+    3. getting secret password
+    4. connecting to the IMAP server
+        1. started with imaplib, but IMAPClient library proved easier to use because it is a little higher level
+    5. processing the rules for filing the messages
+        1. factory pattern for converting rule specifications into Rule objects
+        2. querying for the messages
+        3. fetching and parsing the message
+        4. does the rule apply?
+        5. build the action & invoke it
+            1. factory pattern again
+        6. expunge()
+3. data driven
+    1. YAML file to describe the account and the rules
+    2. separate rules for each mailbox
+    3. digression into IMAP mailbox naming
+4. creating the rules
+    1. simple string and pattern matching rules
+        1. HeaderSubString
+        2. HeaderRegex
+    2. build up more complex rule classes using composition and inheritance
+        1. Or
+        2. And
+        3. Headers
+5. creating the actions
+    1. Move
+    2. Trash
+    3. Delete
+-->
+
         <section>
           <h2>Create your other slides here</h2>
+
         </section>
 
         <section>
