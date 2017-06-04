@@ -307,11 +307,13 @@ body {
 .reveal pre {
   width: 98%; }
 
+.reveal tt {
+  font-family: Monaco, monospace; }
+
 .reveal small {
   font-size: 0.5em; }
 
 .reveal .slides section {
-  /* lineselect.js */
   /* lineselect.js */ }
   .reveal .slides section .fragment.highlight-yellow, .reveal .slides section .fragment.highlight-current-yellow {
     opacity: 1;
@@ -322,12 +324,7 @@ body {
   .reveal .slides section .fragment.highlight-current-yellow.current-fragment {
     background-color: yellow;
     border: 3px solid black; }
-  .reveal .slides section pre span.selected {
-    border: .15em solid #f66;
-    padding: .15em .15em .05em .15em;
-    margin: -.30em -.30em -.20em -.30em;
-    font-weight: bold; }
-  .reveal .slides section code span.selected {
+  .reveal .slides section span.selected {
     border: .15em solid yellow;
     background-color: yellow;
     padding: .15em .15em .05em .15em;
