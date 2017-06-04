@@ -333,3 +333,9 @@ body {
 
 .reveal aside.controls-off {
   visibility: hidden; }
+
+.reveal .creativecommons {
+  font-size: 0.4em; }
+
+.reveal .creativecommons img {
+  vertical-align: middle; }
