@@ -11,7 +11,6 @@
 #    under the License.
 
 import abc
-import logging
 
 import imapclient
 
@@ -29,14 +28,10 @@ def factory(action_data, cfg):
 
 
 class Action(metaclass=abc.ABCMeta):
-    "Base class"
-
-    _log = logging.getLogger(__name__)
 
     def __init__(self, action_data, cfg):
         self._data = action_data
         self._cfg = cfg
-        self._log.debug('new: %r', action_data)
 
     @abc.abstractmethod
     def invoke(self, conn, message_id, message):
@@ -45,24 +40,16 @@ class Action(metaclass=abc.ABCMeta):
 
 class Move(Action):
 
-    _log = logging.getLogger('Move')
-
     def __init__(self, action_data, cfg):
         super().__init__(action_data, cfg)
         self._dest_mailbox = self._data.get('dest-mailbox')
 
     def invoke(self, conn, message_id, message):
-        self._log.info(
-            '%s (%s) to %s',
-            message_id, message['subject'],
-            self._dest_mailbox)
         conn.copy([message_id], self._dest_mailbox)
         conn.add_flags([message_id], [imapclient.DELETED])
 
 
 class Trash(Move):
-
-    _log = logging.getLogger('Trash')
 
     def __init__(self, action_data, cfg):
         super().__init__(action_data, cfg)
@@ -74,8 +61,5 @@ class Trash(Move):
 
 class Delete(Action):
 
-    _log = logging.getLogger('Delete')
-
     def invoke(self, conn, message_id, message):
-        self._log.info('%s (%s)', message_id, message['subject'])
         conn.add_flags([message_id], [imapclient.DELETED])

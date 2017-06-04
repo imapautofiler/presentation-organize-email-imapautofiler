@@ -11,7 +11,6 @@
 #    under the License.
 
 import abc
-import logging
 import re
 
 
@@ -34,7 +33,6 @@ def factory(rule_data, cfg):
 class Rule(metaclass=abc.ABCMeta):
 
     def __init__(self, rule_data, cfg):
-        self._log.debug('new %r', rule_data)
         self._data = rule_data
         self._cfg = cfg
 
@@ -45,13 +43,9 @@ class Rule(metaclass=abc.ABCMeta):
     def get_action(self):
         return self._data.get('action', {})
 
-    _log = logging.getLogger(__name__)
-
 
 class Or(Rule):
     "True if any one of the sub-rules is true."
-
-    _log = logging.getLogger('Or')
 
     def __init__(self, rule_data, cfg):
         super().__init__(rule_data, cfg)
@@ -61,16 +55,14 @@ class Or(Rule):
         ]
 
     def check(self, message):
-        if not self._sub_rules:
-            self._log.debug('no sub-rules')
-            return False
-        return any(r.check(message) for r in self._sub_rules)
+        return any(
+            r.check(message)
+            for r in self._sub_rules
+        )
 
 
 class Recipient(Or):
     "True if any recipient sub-rule matches."
-
-    _log = logging.getLogger('Recipient')
 
     def __init__(self, rule_data, cfg):
         rules = []
@@ -88,8 +80,6 @@ class Recipient(Or):
 class Headers(Rule):
     "True if all of the headers match."
 
-    _log = logging.getLogger('Headers')
-
     def __init__(self, rule_data, cfg):
         super().__init__(rule_data, cfg)
         self._matchers = []
@@ -103,14 +93,11 @@ class Headers(Rule):
 
     def check(self, message):
         if not self._matchers:
-            self._log.debug('no sub-rules')
             return False
         return all(m.check(message) for m in self._matchers)
 
 
 class HeaderSubString(Rule):
-
-    _log = logging.getLogger('HeaderSubString')
 
     def __init__(self, rule_data, cfg):
         super().__init__(rule_data, cfg)
@@ -119,13 +106,10 @@ class HeaderSubString(Rule):
 
     def check(self, message):
         header_value = message.get(self._header_name, '').lower()
-        self._log.debug('%r in %r', self._substring, header_value)
         return (self._substring in header_value)
 
 
 class HeaderRegex(Rule):
-
-    _log = logging.getLogger('HeaderRegex')
 
     def __init__(self, rule_data, cfg):
         super().__init__(rule_data, cfg)
@@ -134,5 +118,4 @@ class HeaderRegex(Rule):
 
     def check(self, message):
         header_value = message.get(self._header_name, '').lower()
-        self._log.debug('%r in %r', self._regex.pattern, header_value)
         return bool(self._regex.search(header_value))

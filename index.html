@@ -1,5 +1,6 @@
 <!--[[[cog
-from tools.showcode import showcode, runscript
+from tools.showcode import showcode, runscript, showfile
+show_yaml = showcode
 import re
 ]]]-->
 <!--[[[end]]]-->
@@ -109,17 +110,14 @@ import re
         <section>
           <h2>Command Line Use</h2>
 
-<pre><code class="lineselect_selectable" data-trim data-noescape>usage: imapautofiler [-h] [-v] [--debug] [-c CONFIG_FILE] 
-        [--list-mailboxes]
+<pre class="lineselect_selectable" data-trim data-noescape>usage: imapautofiler [-h] [-c CONFIG_FILE] [--list-mailboxes]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --verbose         report more details about what is happening
-  --debug               turn on imaplib debugging output
   -c CONFIG_FILE, --config-file CONFIG_FILE
   --list-mailboxes      instead of processing rules,
                           print a list of mailboxes
-</code></pre>
+</pre>
 
         </section>
 
@@ -127,23 +125,18 @@ optional arguments:
           <h2>Parsing Command Line Arguments</h2>
 
 <!--[[[cog
-showcode('imapautofiler/app.py', lines=(95, 109))
+showcode('imapautofiler/app.py', lines=(82, 91))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>def main(args=None):
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        default=False,
-        help='report more details about what is happening')
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        default=False,
-        help='turn on imaplib debugging output')
+<pre><code class="lineselect_selectable py" data-trim data-noescape>    parser = argparse.ArgumentParser()
     parser.add_argument(
         '-c', '--config-file',
-        default='~/.imapautofiler.yml')</code></pre>
+        default='~/.imapautofiler.yml')
+    parser.add_argument(
+        '--list-mailboxes',
+        default=False,
+        action='store_true',
+        help='instead of processing rules, print a list of mailboxes')
+    args = parser.parse_args()</code></pre>
 
 <!--[[[end]]]-->
         </section>
@@ -152,16 +145,13 @@ showcode('imapautofiler/app.py', lines=(95, 109))
           <h2>Loading a Configuration File</h2>
 
 <!--[[[cog
-showcode('imapautofiler/config.py', lines=(16, 25))
+showcode('imapautofiler/config.py', lines=(16, 22))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>import yaml
-
-LOG = logging.getLogger(__name__)
+<pre><code class="lineselect_selectable py" data-trim data-noescape>import yaml
 
 
 def get_config(filename):
     filename = os.path.expanduser(filename)
-    LOG.debug('loading config from %s', filename)
     with open(filename, 'r', encoding='utf-8') as f:
         return yaml.load(f)</code></pre>
 
@@ -172,11 +162,11 @@ def get_config(filename):
         <section>
           <h2>Configuring IMAP Server Connection</h2>
 <!--[[[cog
-showcode('imapautofiler/config.yml', lines=(2, 4))
+show_yaml('imapautofiler/config.yml', lines=(2, 4))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>server:
-  hostname: mail.messagingengine.com
-  username: doughellmann@fastmail.fm</code></pre>
+<pre><code class="lineselect_selectable yml" data-trim data-noescape>server:
+  hostname: "mail.messagingengine.com"
+  username: "doughellmann@fastmail.fm"</code></pre>
 
 <!--[[[end]]]-->
         </section>
@@ -184,9 +174,9 @@ showcode('imapautofiler/config.yml', lines=(2, 4))
         <section>
           <h2>Connecting to the IMAP Server with IMAPClient</h2>
 <!--[[[cog
-showcode('imapautofiler/app.py', lines=(132, 142))
+showcode('imapautofiler/app.py', lines=(94, 105))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>        cfg = config.get_config(args.config_file)
+<pre><code class="lineselect_selectable py" data-trim data-noescape>        cfg = config.get_config(args.config_file)
         conn = imapclient.IMAPClient(
             cfg['server']['hostname'],
             use_uid=True,
@@ -195,7 +185,8 @@ showcode('imapautofiler/app.py', lines=(132, 142))
         username = cfg['server']['username']
         password = cfg['server'].get('password')
         if not password:
-            password = getpass.getpass('Password for {}:'.format(username))
+            password = getpass.getpass(
+                'Password for {}:'.format(username))
         conn.login(username, password)</code></pre>
 
 <!--[[[end]]]-->
@@ -211,34 +202,60 @@ showcode('imapautofiler/app.py', lines=(132, 142))
             <li>If the rule passes, run the associated action</li>
           </ol>
 
-          <p>What does a rule look like?</p>
+          <p>How do the rules work?</p>
+        </section>
+
+        <section>
+          <h2>Rule Class</h2>
+<!--[[[cog
+showcode('imapautofiler/rules.py', lines=(33, 44))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class Rule(metaclass=abc.ABCMeta):
+
+    def __init__(self, rule_data, cfg):
+        self._data = rule_data
+        self._cfg = cfg
+
+    @abc.abstractmethod
+    def check(self):
+        raise NotImplementedError()
+
+    def get_action(self):
+        return self._data.get('action', {})</code></pre>
+
+<!--[[[end]]]-->
         </section>
 
         <section>
           <h2>Header Rule</h2>
 <!--[[[cog
-showcode('imapautofiler/config.yml', lines=(54, 59))
+show_yaml('imapautofiler/config.yml', lines=(54, 59))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>      - headers:
-          - name: subject
+<pre><code class="lineselect_selectable yml" data-trim data-noescape>      - headers:
+          - name: "subject"
             substring: "[pyatl]"
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.PyATL"</code></pre>
 
 <!--[[[end]]]-->
         </section>
 
         <section>
-          <h2>Recipient Rule</h2>
+          <h2>HeaderSubString Class</h2>
 <!--[[[cog
-showcode('imapautofiler/config.yml', lines=(61, 65))
+showcode('imapautofiler/rules.py', lines=(100, 109))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>      - recipient:
-          substring: pyatl-list@meetup.com
-        action:
-          name: move
-          dest-mailbox: "INBOX.PyATL"</code></pre>
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class HeaderSubString(Rule):
+
+    def __init__(self, rule_data, cfg):
+        super().__init__(rule_data, cfg)
+        self._header_name = rule_data['name']
+        self._substring = rule_data['substring'].lower()
+
+    def check(self, message):
+        header_value = message.get(self._header_name, '').lower()
+        return (self._substring in header_value)</code></pre>
 
 <!--[[[end]]]-->
         </section>
@@ -246,34 +263,220 @@ showcode('imapautofiler/config.yml', lines=(61, 65))
         <section>
           <h2>Combination Rule: OR</h2>
 <!--[[[cog
-showcode('imapautofiler/config.yml', lines=(95, 105))
+show_yaml('imapautofiler/config.yml', lines=(61, 71))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>      - or:
+<pre><code class="lineselect_selectable yml" data-trim data-noescape>      - or:
           rules:
-            - recipient:
-                substring: psf-volunteers@python.org
-            - recipient:
-                substring: psf-vote@python.org
-            - recipient:
-                substring: sponsors-wg@python.org
+            - headers:
+                - name: "to"
+                  substring: "pyatl-list@meetup.com"
+            - headers:
+                - name: "cc"
+                  substring: "pyatl-list@meetup.com"
         action:
-          name: move
-          dest-mailbox: "INBOX.PSF"</code></pre>
+          name: "move"
+          dest-mailbox: "INBOX.PyATL"</code></pre>
 
 <!--[[[end]]]-->
         </section>
 
         <section>
-          <h2>Rule Class</h2>
+          <h2>Or Class</h2>
 <!--[[[cog
-showcode('imapautofiler/config.yml', lines=(54, 59))
+showcode('imapautofiler/rules.py', lines=(47, 61))
 ]]]-->
-<pre><code class="lineselect_selectable" data-trim data-noescape>      - headers:
-          - name: subject
-            substring: "[pyatl]"
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class Or(Rule):
+    "True if any one of the sub-rules is true."
+
+    def __init__(self, rule_data, cfg):
+        super().__init__(rule_data, cfg)
+        self._sub_rules = [
+            factory(r, cfg)
+            for r in rule_data['or'].get('rules', [])
+        ]
+
+    def check(self, message):
+        return any(
+            r.check(message)
+            for r in self._sub_rules
+        )</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Recipient Rule</h2>
+<!--[[[cog
+show_yaml('imapautofiler/config.yml', lines=(73, 77))
+]]]-->
+<pre><code class="lineselect_selectable yml" data-trim data-noescape>      - recipient:
+          substring: "pyatl-list@meetup.com"
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.PyATL"</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Recipient Class</h2>
+<!--[[[cog
+showcode('imapautofiler/rules.py', lines=(64, 77))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class Recipient(Or):
+    "True if any recipient sub-rule matches."
+
+    def __init__(self, rule_data, cfg):
+        rules = []
+        for header in ['to', 'cc']:
+            header_data = {}
+            header_data.update(rule_data['recipient'])
+            header_data['name'] = header
+            rules.append({'headers': [header_data]})
+        rule_data['or'] = {
+            'rules': rules,
+        }
+        super().__init__(rule_data, cfg)</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Instantiating Rules</h2>
+<!--[[[cog
+showcode('imapautofiler/rules.py', lines=(17, 30))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>def factory(rule_data, cfg):
+    """Create a rule processor.
+
+    Using the rule type, instantiate a rule processor that can check
+    the rule against a message.
+
+    """
+    if 'or' in rule_data:
+        return Or(rule_data, cfg)
+    if 'headers' in rule_data:
+        return Headers(rule_data, cfg)
+    if 'recipient' in rule_data:
+        return Recipient(rule_data, cfg)
+    raise ValueError('Unknown rule type {!r}'.format(rule_data))</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Processing Rules</h2>
+<!--[[[cog
+showcode('imapautofiler/app.py', lines=(51, 62))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>def process_rules(cfg, debug, conn):
+    num_messages = 0
+    num_processed = 0
+
+    for mailbox in cfg['mailboxes']:      # multiple mailboxes allowed
+        mailbox_name = mailbox['name']
+        conn.select_folder(mailbox_name)
+
+        mailbox_rules = [                 # convert data to instances
+            rules.factory(r, cfg)
+            for r in mailbox['rules']
+        ]</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Processing Rules</h2>
+<!--[[[cog
+showcode('imapautofiler/app.py', lines=(64, 78))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>        msg_ids = conn.search(['ALL'])
+
+        for msg_id in msg_ids:
+            num_messages += 1
+            message = get_message(conn, msg_id)
+
+            for rule in mailbox_rules:
+                if rule.check(message):
+                    action = actions.factory(rule.get_action(), cfg)
+                    action.invoke(conn, msg_id, message)
+                    num_processed += 1
+                    break
+
+        # Remove messages that we just moved.
+        conn.expunge()</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Rule Actions</h2>
+<!--[[[cog
+showcode('imapautofiler/app.py', lines=(64, 78), mark=(9, 10))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>        msg_ids = conn.search(['ALL'])
+
+        for msg_id in msg_ids:
+            num_messages += 1
+            message = get_message(conn, msg_id)
+
+            for rule in mailbox_rules:
+                if rule.check(message):
+<mark>                    action = actions.factory(rule.get_action(), cfg)
+</mark><mark>                    action.invoke(conn, msg_id, message)
+</mark>                    num_processed += 1
+                    break
+
+        # Remove messages that we just moved.
+        conn.expunge()</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Action Class</h2>
+<!--[[[cog
+showcode('imapautofiler/actions.py', lines=(30, 38))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class Action(metaclass=abc.ABCMeta):
+
+    def __init__(self, action_data, cfg):
+        self._data = action_data
+        self._cfg = cfg
+
+    @abc.abstractmethod
+    def invoke(self, conn, message_id, message):
+        raise NotImplementedError()</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Move Action</h2>
+<!--[[[cog
+show_yaml('imapautofiler/config.yml', lines=(57, 59))
+]]]-->
+<pre><code class="lineselect_selectable yml" data-trim data-noescape>        action:
+          name: "move"
+          dest-mailbox: "INBOX.PyATL"</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Move Class</h2>
+<!--[[[cog
+showcode('imapautofiler/actions.py', lines=(41, 49))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class Move(Action):
+
+    def __init__(self, action_data, cfg):
+        super().__init__(action_data, cfg)
+        self._dest_mailbox = self._data.get('dest-mailbox')
+
+    def invoke(self, conn, message_id, message):
+        conn.copy([message_id], self._dest_mailbox)
+        conn.add_flags([message_id], [imapclient.DELETED])</code></pre>
 
 <!--[[[end]]]-->
         </section>
@@ -294,7 +497,7 @@ showcode('imapautofiler/config.yml', lines=(54, 59))
             <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
               <img alt="Creative Commons License" src="img/cc-by-88x31.png" />
             </a><br>
-            <span>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
+            <span>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creativle Commons Attribution 4.0 International License</a>.</span>
           </p>
         </section>
 
@@ -362,6 +565,7 @@ showcode('imapautofiler/config.yml', lines=(54, 59))
           39: _next_slide,
         },
         progress: true,
+        slideNumber: true,
         history: true,
         center: true,
         transition: 'slide', // none/fade/slide/convex/concave/zoom

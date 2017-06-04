@@ -1,7 +1,7 @@
 ---
 server:
-  hostname: mail.messagingengine.com
-  username: doughellmann@fastmail.fm
+  hostname: "mail.messagingengine.com"
+  username: "doughellmann@fastmail.fm"
 
 trash-mailbox: INBOX.Trash
 
@@ -11,17 +11,17 @@ mailboxes:
       - recipient:
           substring: openstack-dev@lists.openstack.org
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.OpenStack.Dev List"
       - recipient:
           substring: openstack-tc@lists.openstack.org
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.OpenStack.TC"
       - recipient:
           substring: "@lists.openstack.org"
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.OpenStack.Misc Lists"
 
       - or:
@@ -32,7 +32,7 @@ mailboxes:
                 - name: subject
                   substring: "[openstack-atlanta]"
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.OpenStackAtl"
 
       - or:
@@ -48,20 +48,32 @@ mailboxes:
                 - name: subject
                   substring: "[pyatl-org]"
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.PyATL"
 
       - headers:
-          - name: subject
+          - name: "subject"
             substring: "[pyatl]"
         action:
-          name: move
+          name: "move"
+          dest-mailbox: "INBOX.PyATL"
+
+      - or:
+          rules:
+            - headers:
+                - name: "to"
+                  substring: "pyatl-list@meetup.com"
+            - headers:
+                - name: "cc"
+                  substring: "pyatl-list@meetup.com"
+        action:
+          name: "move"
           dest-mailbox: "INBOX.PyATL"
 
       - recipient:
-          substring: pyatl-list@meetup.com
+          substring: "pyatl-list@meetup.com"
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.PyATL"
 
       - or:
@@ -71,7 +83,7 @@ mailboxes:
             - recipient:
                 substring: th.flynn@gmail.com
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.Theresa"
 
       - or:
@@ -83,13 +95,13 @@ mailboxes:
             - recipient:
                 substring: BHellmann@AOL.com
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.Personal"
 
       - recipient:
           substring: virtualenvwrapper@googlegroups.com
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.Dev Projects"
 
       - or:
@@ -101,13 +113,13 @@ mailboxes:
             - recipient:
                 substring: sponsors-wg@python.org
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.PSF"
 
       - recipient:
           substring: emily@shirazathens.com
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.ServiceProviders"
 
       - or:
@@ -121,7 +133,7 @@ mailboxes:
             - recipient:
                 substring: jhobbs3462@aol.com
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.Publishers"
 
       - or:
@@ -136,22 +148,22 @@ mailboxes:
                 - name: to
                   substring: plans@tripit.com
         action:
-          name: trash
+          name: "trash"
 
       - headers:
           - name: to
             substring: plans@tripit.com
         action:
-          name: trash
+          name: "trash"
 
       - recipient:
           substring: core-workflow@python.org
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.ML.python-core-workflow"
 
       - recipient:
           substring: python-committers@python.org
         action:
-          name: move
+          name: "move"
           dest-mailbox: "INBOX.ML.python-committers"

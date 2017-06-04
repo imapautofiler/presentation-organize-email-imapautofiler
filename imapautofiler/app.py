@@ -66,44 +66,20 @@ def process_rules(cfg, debug, conn):
         for msg_id in msg_ids:
             num_messages += 1
             message = get_message(conn, msg_id)
-            if debug:
-                print(message.as_string().rstrip())
-            else:
-                LOG.debug('message %s: %s', msg_id, message['subject'])
 
             for rule in mailbox_rules:
                 if rule.check(message):
                     action = actions.factory(rule.get_action(), cfg)
                     action.invoke(conn, msg_id, message)
-                    # At this point we've processed the message
-                    # based on one rule, so there is no need to
-                    # look at the other rules.
                     num_processed += 1
                     break
-                else:
-                    LOG.debug('no rules match')
-
-            # break
 
         # Remove messages that we just moved.
         conn.expunge()
-    LOG.info('encountered %s messages, processed %s',
-             num_messages, num_processed)
-    return
 
 
 def main(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        default=False,
-        help='report more details about what is happening')
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        default=False,
-        help='turn on imaplib debugging output')
     parser.add_argument(
         '-c', '--config-file',
         default='~/.imapautofiler.yml')
@@ -113,20 +89,6 @@ def main(args=None):
         action='store_true',
         help='instead of processing rules, print a list of mailboxes')
     args = parser.parse_args()
-
-    if args.debug:
-        imaplib.Debug = 4
-
-    if args.verbose or args.debug:
-        log_level = logging.DEBUG
-    else:
-        log_level = logging.INFO
-
-    logging.basicConfig(
-        level=log_level,
-        format='%(name)s: %(message)s',
-    )
-    logging.debug('starting')
 
     try:
         cfg = config.get_config(args.config_file)
@@ -138,7 +100,8 @@ def main(args=None):
         username = cfg['server']['username']
         password = cfg['server'].get('password')
         if not password:
-            password = getpass.getpass('Password for {}:'.format(username))
+            password = getpass.getpass(
+                'Password for {}:'.format(username))
         conn.login(username, password)
         try:
             if args.list_mailboxes:

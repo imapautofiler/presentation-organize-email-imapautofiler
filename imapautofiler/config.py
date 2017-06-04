@@ -15,11 +15,8 @@ import os.path
 
 import yaml
 
-LOG = logging.getLogger(__name__)
-
 
 def get_config(filename):
     filename = os.path.expanduser(filename)
-    LOG.debug('loading config from %s', filename)
     with open(filename, 'r', encoding='utf-8') as f:
         return yaml.load(f)
