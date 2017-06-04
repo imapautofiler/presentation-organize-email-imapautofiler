@@ -482,6 +482,56 @@ showcode('imapautofiler/actions.py', lines=(41, 49))
         </section>
 
         <section>
+          <h2>Trash Action</h2>
+<!--[[[cog
+show_yaml('imapautofiler/config.yml', lines=(150, 154))
+]]]-->
+<pre><code class="lineselect_selectable yml" data-trim data-noescape>      - headers:
+          - name: to
+            substring: plans@tripit.com
+        action:
+          name: "trash"</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Trash Class</h2>
+<!--[[[cog
+showcode('imapautofiler/actions.py', lines=(52, 59))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>class Trash(Move):
+
+    def __init__(self, action_data, cfg):
+        super().__init__(action_data, cfg)
+        if self._dest_mailbox is None:
+            self._dest_mailbox = cfg.get('trash-mailbox')
+        if self._dest_mailbox is None:
+            raise ValueError('no "trash-mailbox" set in config')</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Action Factory</h2>
+<!--[[[cog
+showcode('imapautofiler/actions.py', lines=(18, 27))
+]]]-->
+<pre><code class="lineselect_selectable py" data-trim data-noescape>def factory(action_data, cfg):
+    "Create an Action instance."
+    name = action_data.get('name')
+    if name == 'move':
+        return Move(action_data, cfg)
+    if name == 'delete':
+        return Delete(action_data, cfg)
+    if name == 'trash':
+        return Trash(action_data, cfg)
+    raise ValueError('unrecognized rule action {!r}'.format(action_data))</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
           <h2>Resources</h2>
           <p><small>
             <a href="https://github.com/dhellmann/presentation-working-with-imap-email-servers">

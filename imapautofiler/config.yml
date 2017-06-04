@@ -140,10 +140,7 @@ mailboxes:
           rules:
             - headers:
                 - name: to
-                  substring: doughellmann.3def91d@m.evernote.com
-            - headers:
-                - name: to
-                  regex: "notify-.*@disqus.net"
+                  substring: @m.evernote.com
             - headers:
                 - name: to
                   substring: plans@tripit.com
