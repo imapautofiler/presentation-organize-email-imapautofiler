@@ -1,5 +1,4 @@
 <!--[[[cog
-from tools.regexesfear import showregex
 from tools.showcode import showcode, runscript
 import re
 ]]]-->
@@ -88,8 +87,195 @@ import re
 -->
 
         <section>
-          <h2>Create your other slides here</h2>
+          <h2>What is imapautofiler?</h2>
 
+          <ul>
+            <li>I send too much email.</li>
+            <li>I need to keep my sent email organized.</li>
+            <li>Automation FTW!</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Design Thoughts</h2>
+
+          <ul>
+            <li>Hard-coded vs. data-driven</li>
+            <li>Extensible</li>
+            <li>Reusable</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Command Line Use</h2>
+
+<pre><code class="lineselect_selectable" data-trim data-noescape>usage: imapautofiler [-h] [-v] [--debug] [-c CONFIG_FILE] 
+        [--list-mailboxes]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         report more details about what is happening
+  --debug               turn on imaplib debugging output
+  -c CONFIG_FILE, --config-file CONFIG_FILE
+  --list-mailboxes      instead of processing rules,
+                          print a list of mailboxes
+</code></pre>
+
+        </section>
+
+        <section>
+          <h2>Parsing Command Line Arguments</h2>
+
+<!--[[[cog
+showcode('imapautofiler/app.py', lines=(95, 109))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>def main(args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        default=False,
+        help='report more details about what is happening')
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        default=False,
+        help='turn on imaplib debugging output')
+    parser.add_argument(
+        '-c', '--config-file',
+        default='~/.imapautofiler.yml')</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Loading a Configuration File</h2>
+
+<!--[[[cog
+showcode('imapautofiler/config.py', lines=(16, 25))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>import yaml
+
+LOG = logging.getLogger(__name__)
+
+
+def get_config(filename):
+    filename = os.path.expanduser(filename)
+    LOG.debug('loading config from %s', filename)
+    with open(filename, 'r', encoding='utf-8') as f:
+        return yaml.load(f)</code></pre>
+
+<!--[[[end]]]-->
+
+        </section>
+
+        <section>
+          <h2>Configuring IMAP Server Connection</h2>
+<!--[[[cog
+showcode('imapautofiler/config.yml', lines=(2, 4))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>server:
+  hostname: mail.messagingengine.com
+  username: doughellmann@fastmail.fm</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Connecting to the IMAP Server with IMAPClient</h2>
+<!--[[[cog
+showcode('imapautofiler/app.py', lines=(132, 142))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>        cfg = config.get_config(args.config_file)
+        conn = imapclient.IMAPClient(
+            cfg['server']['hostname'],
+            use_uid=True,
+            ssl=True,
+        )
+        username = cfg['server']['username']
+        password = cfg['server'].get('password')
+        if not password:
+            password = getpass.getpass('Password for {}:'.format(username))
+        conn.login(username, password)</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Processing Rules</h2>
+
+          <ol>
+            <li>For each mailbox in the config file,</li>
+            <li>For each message,</li>
+            <li>For each rule,</li>
+            <li>If the rule passes, run the associated action</li>
+          </ol>
+
+          <p>What does a rule look like?</p>
+        </section>
+
+        <section>
+          <h2>Header Rule</h2>
+<!--[[[cog
+showcode('imapautofiler/config.yml', lines=(54, 59))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>      - headers:
+          - name: subject
+            substring: "[pyatl]"
+        action:
+          name: move
+          dest-mailbox: "INBOX.PyATL"</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Recipient Rule</h2>
+<!--[[[cog
+showcode('imapautofiler/config.yml', lines=(61, 65))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>      - recipient:
+          substring: pyatl-list@meetup.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.PyATL"</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Combination Rule: OR</h2>
+<!--[[[cog
+showcode('imapautofiler/config.yml', lines=(95, 105))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>      - or:
+          rules:
+            - recipient:
+                substring: psf-volunteers@python.org
+            - recipient:
+                substring: psf-vote@python.org
+            - recipient:
+                substring: sponsors-wg@python.org
+        action:
+          name: move
+          dest-mailbox: "INBOX.PSF"</code></pre>
+
+<!--[[[end]]]-->
+        </section>
+
+        <section>
+          <h2>Rule Class</h2>
+<!--[[[cog
+showcode('imapautofiler/config.yml', lines=(54, 59))
+]]]-->
+<pre><code class="lineselect_selectable" data-trim data-noescape>      - headers:
+          - name: subject
+            substring: "[pyatl]"
+        action:
+          name: move
+          dest-mailbox: "INBOX.PyATL"</code></pre>
+
+<!--[[[end]]]-->
         </section>
 
         <section>
@@ -116,6 +302,7 @@ import re
     </div>
 
     <script src="lib/js/head.min.js"></script>
+	<script src="js/jquery-3.1.1.js"></script>
     <script src="js/reveal.js"></script>
 	<script src="js/lineselect.js"></script>
 

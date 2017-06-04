@@ -1,0 +1,157 @@
+---
+server:
+  hostname: mail.messagingengine.com
+  username: doughellmann@fastmail.fm
+
+trash-mailbox: INBOX.Trash
+
+mailboxes:
+  - name: 'INBOX.Sent Items'
+    rules:
+      - recipient:
+          substring: openstack-dev@lists.openstack.org
+        action:
+          name: move
+          dest-mailbox: "INBOX.OpenStack.Dev List"
+      - recipient:
+          substring: openstack-tc@lists.openstack.org
+        action:
+          name: move
+          dest-mailbox: "INBOX.OpenStack.TC"
+      - recipient:
+          substring: "@lists.openstack.org"
+        action:
+          name: move
+          dest-mailbox: "INBOX.OpenStack.Misc Lists"
+
+      - or:
+          rules:
+            - recipient:
+                substring: openstack-atlanta-list@meetup.com
+            - headers:
+                - name: subject
+                  substring: "[openstack-atlanta]"
+        action:
+          name: move
+          dest-mailbox: "INBOX.OpenStackAtl"
+
+      - or:
+          rules:
+            - recipient:
+                substring: pyatl-list@meetup.com
+            - recipient:
+                substring: pyatl-org@googlegroups.com
+            - headers:
+                - name: subject
+                  substring: "[pyatl]"
+            - headers:
+                - name: subject
+                  substring: "[pyatl-org]"
+        action:
+          name: move
+          dest-mailbox: "INBOX.PyATL"
+
+      - headers:
+          - name: subject
+            substring: "[pyatl]"
+        action:
+          name: move
+          dest-mailbox: "INBOX.PyATL"
+
+      - recipient:
+          substring: pyatl-list@meetup.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.PyATL"
+
+      - or:
+          rules:
+            - recipient:
+                substring: tmf@hellfly.net
+            - recipient:
+                substring: th.flynn@gmail.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.Theresa"
+
+      - or:
+          rules:
+            - recipient:
+                substring: william.hellmann@gmail.com
+            - recipient:
+                substring: rwhellmann@aol.com
+            - recipient:
+                substring: BHellmann@AOL.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.Personal"
+
+      - recipient:
+          substring: virtualenvwrapper@googlegroups.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.Dev Projects"
+
+      - or:
+          rules:
+            - recipient:
+                substring: psf-volunteers@python.org
+            - recipient:
+                substring: psf-vote@python.org
+            - recipient:
+                substring: sponsors-wg@python.org
+        action:
+          name: move
+          dest-mailbox: "INBOX.PSF"
+
+      - recipient:
+          substring: emily@shirazathens.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.ServiceProviders"
+
+      - or:
+          rules:
+            - recipient:
+                substring: debra.j.williams@pearson.com
+            - recipient:
+                substring: anna.popick@gmail.com
+            - recipient:
+                substring: julie.nahil@pearson.com
+            - recipient:
+                substring: jhobbs3462@aol.com
+        action:
+          name: move
+          dest-mailbox: "INBOX.Publishers"
+
+      - or:
+          rules:
+            - headers:
+                - name: to
+                  substring: doughellmann.3def91d@m.evernote.com
+            - headers:
+                - name: to
+                  regex: "notify-.*@disqus.net"
+            - headers:
+                - name: to
+                  substring: plans@tripit.com
+        action:
+          name: trash
+
+      - headers:
+          - name: to
+            substring: plans@tripit.com
+        action:
+          name: trash
+
+      - recipient:
+          substring: core-workflow@python.org
+        action:
+          name: move
+          dest-mailbox: "INBOX.ML.python-core-workflow"
+
+      - recipient:
+          substring: python-committers@python.org
+        action:
+          name: move
+          dest-mailbox: "INBOX.ML.python-committers"

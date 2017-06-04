@@ -32,9 +32,6 @@ def factory(rule_data, cfg):
 
 
 class Rule(metaclass=abc.ABCMeta):
-    "Base class"
-
-    _log = logging.getLogger(__name__)
 
     def __init__(self, rule_data, cfg):
         self._log.debug('new %r', rule_data)
@@ -47,6 +44,8 @@ class Rule(metaclass=abc.ABCMeta):
 
     def get_action(self):
         return self._data.get('action', {})
+
+    _log = logging.getLogger(__name__)
 
 
 class Or(Rule):

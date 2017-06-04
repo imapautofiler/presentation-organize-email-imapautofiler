@@ -52,11 +52,11 @@ def process_rules(cfg, debug, conn):
     num_messages = 0
     num_processed = 0
 
-    for mailbox in cfg['mailboxes']:
+    for mailbox in cfg['mailboxes']:      # multiple mailboxes allowed
         mailbox_name = mailbox['name']
         conn.select_folder(mailbox_name)
 
-        mailbox_rules = [
+        mailbox_rules = [                 # convert data to instances
             rules.factory(r, cfg)
             for r in mailbox['rules']
         ]
@@ -98,24 +98,20 @@ def main(args=None):
         '-v', '--verbose',
         action='store_true',
         default=False,
-        help='report more details about what is happening',
-    )
+        help='report more details about what is happening')
     parser.add_argument(
         '--debug',
         action='store_true',
         default=False,
-        help='turn on imaplib debugging output',
-    )
+        help='turn on imaplib debugging output')
     parser.add_argument(
         '-c', '--config-file',
-        default='~/.imapautofiler.yml',
-    )
+        default='~/.imapautofiler.yml')
     parser.add_argument(
         '--list-mailboxes',
         default=False,
         action='store_true',
-        help='instead of processing rules, print a list of mailboxes',
-    )
+        help='instead of processing rules, print a list of mailboxes')
     args = parser.parse_args()
 
     if args.debug:
