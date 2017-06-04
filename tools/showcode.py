@@ -26,7 +26,8 @@ def showfile(filename, extras='data-trim data-noescape', lines=None, mark=()):
 
 @capture
 def showcode(filename, extras='data-trim data-noescape', lines=None, mark=()):
-    print('<pre><code class="lineselect_selectable" {}>'.format(extras), end='')
+    ext = filename.rpartition('.')[-1]
+    print('<pre><code class="lineselect_selectable {}" {}>'.format(ext, extras), end='')
     with open(filename, 'r', encoding='utf-8') as f:
         body = f.readlines()
     if lines:
