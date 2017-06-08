@@ -123,41 +123,17 @@ optional arguments:
         </section>
 
         <section>
-          <h2>Parsing Command Line Arguments</h2>
+          <h2>Processing Overview</h2>
 
-<!--[[[cog
-showcode('imapautofiler/app.py', lines=(82, 91))
-]]]-->
-<pre><code class="lineselect_selectable py" data-trim data-noescape>    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-c', '--config-file',
-        default='~/.imapautofiler.yml')
-    parser.add_argument(
-        '--list-mailboxes',
-        default=False,
-        action='store_true',
-        help='instead of processing rules, print a list of mailboxes')
-    args = parser.parse_args()</code></pre>
-
-<!--[[[end]]]-->
-        </section>
-
-        <section>
-          <h2>Loading a Configuration File</h2>
-
-<!--[[[cog
-showcode('imapautofiler/config.py', lines=(16, 22))
-]]]-->
-<pre><code class="lineselect_selectable py" data-trim data-noescape>import yaml
-
-
-def get_config(filename):
-    filename = os.path.expanduser(filename)
-    with open(filename, 'r', encoding='utf-8') as f:
-        return yaml.load(f)</code></pre>
-
-<!--[[[end]]]-->
-
+          <ol>
+            <li>Read the configuration file.</li>
+            <li>Connect to the IMAP server.</li>
+            <li>For each mailbox in the config file,</li>
+            <li>For each message,</li>
+            <li>For each rule,</li>
+            <li>If the rule matches the message,</li>
+            <li>Run the associated action.</li>
+          </ol>
         </section>
 
         <section>
@@ -194,21 +170,9 @@ showcode('imapautofiler/app.py', lines=(94, 105))
         </section>
 
         <section>
-          <h2>Processing Rules</h2>
-
-          <ol>
-            <li>For each mailbox in the config file,</li>
-            <li>For each message,</li>
-            <li>For each rule,</li>
-            <li>If the rule matches the message,</li>
-            <li>Run the associated action.</li>
-          </ol>
+          <h2>Rule Class</h2>
 
           <p>How do the rules work?</p>
-        </section>
-
-        <section>
-          <h2>Rule Class</h2>
 <!--[[[cog
 showcode('imapautofiler/rules.py', lines=(33, 44))
 ]]]-->
