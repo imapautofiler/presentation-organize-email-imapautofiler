@@ -99,17 +99,17 @@ import re
         </section>
 
         <section>
-          <h2>Design Thoughts</h2>
+          <h2>Design Considerations</h2>
 
           <ul>
-            <li>Hard-coded vs. data-driven</li>
-            <li>Extensible</li>
-            <li>Reusable</li>
+            <li>Must support multiple email clients</li>
+            <li>Must be easy to add new rules without writing code</li>
+            <li>Reduce errors in specifying actions</li>
           </ul>
         </section>
 
         <section>
-          <h2>Command Line Use</h2>
+          <h2>Standalone Program</h2>
 
 <pre class="lineselect_selectable" data-trim data-noescape>usage: imapautofiler [-h] [-c CONFIG_FILE] [--list-mailboxes]
 
